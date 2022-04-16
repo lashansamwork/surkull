@@ -12,11 +12,15 @@ import {
 } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import PrimaryNavigator from './navigation/PrimaryNavigator';
+import { AuthContextProvider } from './context-store/AuthContextProvider';
 
 const App = () => {
-  return (<NavigationContainer>
-    <PrimaryNavigator/>
-  </NavigationContainer>
+  return (
+  <AuthContextProvider>
+    <NavigationContainer>
+      <PrimaryNavigator/>
+    </NavigationContainer>
+  </AuthContextProvider>
   );
 };
 

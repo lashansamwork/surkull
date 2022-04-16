@@ -6,8 +6,7 @@ const layout = {
         xxxLarge: 20
     },
     appBar: {
-        width: '100%',
-        marginBottom: 45
+        width: '100%'
     }
   };
   

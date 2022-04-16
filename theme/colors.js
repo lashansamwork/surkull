@@ -5,6 +5,8 @@ const colors = {
       primary: '#FF850F',
       accent: '#ffff66',
       background: '#fff',
+      text: '#000',
+      primaryLight: 'rgba(255,133,15, 0.7)'
     },
   };
   

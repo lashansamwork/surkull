@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "397483540803",
+    "project_id": "surkull",
+    "storage_bucket": "surkull.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:397483540803:android:5d5ce4412f3c8003e6aff6",
+        "android_client_info": {
+          "package_name": "com.surkull"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "397483540803-d1gmg45gp49s19uutc6vu5rer5g0vp7u.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.surkull",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "397483540803-rq5vtvi3ef1jmtf170lhbptbhbo9km3q.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCAbGtrd2Wyw4CQS5euMoLC2A9Rg2_5btU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "397483540803-rq5vtvi3ef1jmtf170lhbptbhbo9km3q.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "397483540803-89983tu3u4q9is9p29c1lnqd3q8b01k4.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "org.reactjs.native.example.surkull"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
