@@ -5,6 +5,7 @@ import ProfileScreen from '../screens/ProfileScreen';
 import { NavigationContainer } from '@react-navigation/native';
 import CustomNavigationBar from './CustomNavigationBar';
 
+
 const Stack = createStackNavigator();
 
 export default function ProfileTabNavigator() {

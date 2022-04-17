@@ -36,7 +36,9 @@
 		</dict>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string>Location is used to match with people around you</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Location is used to match with people around you</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Entypo.ttf</string>

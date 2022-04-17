@@ -25,7 +25,6 @@ function WelcomeScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-        <Appbar style={layout.appBar}/>
         <Image
           style={{ flex: 1.5, width: '100%' }}
           source={images.logo}

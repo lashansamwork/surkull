@@ -1,38 +1,44 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Dimensions, StyleSheet, Text, Linking, Platform, Image } from 'react-native';
-import { TextInput, Button } from 'react-native-paper';
+import { TextInput, Button, HelperText } from 'react-native-paper';
 import { Appbar } from 'react-native-paper';
 import layout from '../theme/layout';
 import images from '../theme/images';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import auth from '@react-native-firebase/auth';
 
 function LoginScreen() {
-  const insets = useSafeAreaInsets();
+  const [loading, setLoading] = useState(false);
   const [userBio, setUserBio] = useState({
     email: null,
     password: null
   });
 
+  const [errors, setErrors] = useState('');
+
 
   const onLoginPress = () => {
+    setLoading(true);
     auth()
     .signInWithEmailAndPassword(userBio.email, userBio.password)
+    .then(()=> setLoading(false))
     .catch(error => {
+      setLoading(false);
       if (error.code === 'auth/email-already-in-use') {
-        console.log('That email address is already in use!');
+        setErrors('That email address is already in use!');
       }
       if (error.code === 'auth/invalid-email') {
-        console.log('That email address is invalid!');
+        setErrors('That email address is invalid!');
       }
-      console.error(error);
+      if (error.code === 'auth/wrong-password') {
+        setErrors('That password is invalid!');
+      }
     });
   }
 
+
   return (
     <View style={styles.container}>
-        <Appbar style={layout.appBar}/>
         <KeyboardAwareScrollView style={{ width: '100%', height: '100%'}} contentContainerStyle={{ paddingTop: layout.padding.xxxLarge }}>
           <Image
             style={{ height: 300, width: '100%' }}
@@ -40,6 +46,11 @@ function LoginScreen() {
             resizeMode={'contain'}
           />
           <View style={{ width: '100%', paddingTop: layout.padding.xxxLarge }}>
+            <View style={{ margin: layout.padding.medium}}>
+              <HelperText type="error" visible={true}>
+                {errors}
+              </HelperText>
+            </View>
             <TextInput
               mode='outlined'
               label="Email"
@@ -60,7 +71,7 @@ function LoginScreen() {
             />
           </View>
           <View style={{ width: '100%', paddingTop: layout.padding.xxxLarge*2, paddingHorizontal: layout.padding.xxxLarge }}>
-            <Button mode="contained" onPress={() => onLoginPress()}>
+            <Button mode="contained" onPress={() => onLoginPress()} loading={loading}>
                 Login
               </Button>
           </View>

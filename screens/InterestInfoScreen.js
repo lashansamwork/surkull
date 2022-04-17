@@ -1,51 +1,44 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Dimensions, StyleSheet, Text, Linking, Platform, FlatList, SafeAreaView } from 'react-native';
 import layout from '../theme/layout';
-import { Appbar, Headline, Caption, List, Divider, Button } from 'react-native-paper'
+import { ActivityIndicator, Headline, Caption, List, Divider, Button } from 'react-native-paper'
 import colors from '../theme/colors';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
+import Geolocation from '@react-native-community/geolocation';
 
 
 function InterestInfoScreen({ route, navigation }) {
 
   const { userBio } = route.params || {};
+  const [loading, setLoading] = useState(false);
+  const [loadingInterests, setLoadingInterests] = useState(true);
   const usersCollection = firestore().collection('Users');
+  const interestCollection = firestore().collection('Interests');
+  const [geoCoordinates, setGeoCoordinates] = useState(null);
+  const [interests, setInterests] = useState(null);
 
-  const [interests, setInterests] = useState([
-    {
-      id: 1,
-      title: 'Chess',
-      selected: false
-    },
-    {
-      id: 2,
-      title: 'Reading',
-      selected: false
-    },
-    {
-      id: 3,
-      title: 'Photography',
-      selected: false
-    },
-    {
-      id: 4,
-      title: 'Design',
-      selected: false
-    },
-    {
-      id: 5,
-      title: 'Blog writing',
-      selected: false
-    },
-    {
-      id: 6,
-      title: 'Dancing',
-      selected: false
-    },
-  ]);
+  useEffect(()=>{
+    Geolocation.getCurrentPosition(info => {
+      setGeoCoordinates({ latitude: info.coords.latitude, longitude: info.coords.longitude  });
+    });
+    interestCollection.get().then((res)=>{
+      const interestArray = res.docs.map((interestDoc, index)=>{
+        return {
+          id: index,
+          title: interestDoc.data().name,
+          selected: false
+        };
+      })
+      setInterests(interestArray);
+      setLoadingInterests(false);
+    })
+
+  }, []);
+
 
   const onSavePressed =  () => {
+    setLoading(true);
     auth()
     .createUserWithEmailAndPassword(userBio.email, userBio.password)
     .catch(error => {
@@ -67,18 +60,26 @@ function InterestInfoScreen({ route, navigation }) {
       dob: userBio.dob,
       gender: userBio.gender,
       email: userBio.email.toLowerCase(),
-      interests: interests.filter((interest)=>interest.selected).map((interest)=>interest.title)
+      interests: interests.filter((interest)=>interest.selected).map((interest)=>interest.title),
+      aboutMe: userBio.aboutMe,
+      geoCoordinates
     })
     .then(() => {
+      setLoading(false);
       console.log('User added!');
     });
 
 
   };
 
+  if(loadingInterests) {
+    return (<View style={{ ...styles.container, justifyContent: 'center'}}>
+      <ActivityIndicator animating={true} color={colors.themeLightColors.primary} />
+    </View>)
+  }
+
   return (
     <View style={styles.container}>
-      <Appbar style={layout.appBar}/>
       <Headline>Interests</Headline>
       <Caption>Select what activities suites best for your character</Caption>
         <View style={{ padding: layout.padding.xxxLarge, width: '100%', flex: 1 }}>
@@ -100,7 +101,7 @@ function InterestInfoScreen({ route, navigation }) {
           />
         </View>
         <View style={{ width: '100%', paddingTop: layout.padding.xxxLarge*2, paddingHorizontal: layout.padding.xxxLarge, flex: 0.5 }}>
-          <Button mode="contained" onPress={() => onSavePressed()}>
+          <Button mode="contained" onPress={() => onSavePressed()} loading={loading}>
               Save
             </Button>
         </View>
