@@ -18,10 +18,12 @@ function LoginScreen() {
 
 
   const onLoginPress = () => {
-    setLoading(true);
+    
     auth()
     .signInWithEmailAndPassword(userBio.email, userBio.password)
-    .then(()=> setLoading(false))
+    .then(()=> {
+      setLoading(false)
+    })
     .catch(error => {
       setLoading(false);
       if (error.code === 'auth/email-already-in-use') {
@@ -32,6 +34,9 @@ function LoginScreen() {
       }
       if (error.code === 'auth/wrong-password') {
         setErrors('That password is invalid!');
+      }
+      if (error.code === 'auth/user-not-found') {
+        setErrors('User not found!');
       }
     });
   }

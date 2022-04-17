@@ -6,6 +6,7 @@ import colors from '../theme/colors';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import Geolocation from '@react-native-community/geolocation';
+import FullScreenLoading from '../component/FullScreenLoading';
 
 
 function InterestInfoScreen({ route, navigation }) {
@@ -73,9 +74,7 @@ function InterestInfoScreen({ route, navigation }) {
   };
 
   if(loadingInterests) {
-    return (<View style={{ ...styles.container, justifyContent: 'center'}}>
-      <ActivityIndicator animating={true} color={colors.themeLightColors.primary} />
-    </View>)
+    return (<FullScreenLoading/>);
   }
 
   return (

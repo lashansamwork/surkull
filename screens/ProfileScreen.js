@@ -6,24 +6,42 @@ import { AuthContext } from '../context-store/AuthContextProvider';
 import firestore from '@react-native-firebase/firestore';
 import images from '../theme/images'
 import { ScrollView } from 'react-native-gesture-handler';
+const geolib = require('geolib');
+import moment from 'moment';
 
 function ProfileScreen({ route, navigation }) {
 
   const { user } = route.params || {};
   const { user: userObject } = React.useContext(AuthContext);
   const [profileInfo, setProfileInfo] = useState(null);
+  const usersCollection = firestore().collection('Users');
 
   useEffect(()=>{
     if(!user && userObject.email) {
-      firestore().collection('Users').doc(userObject.email).get().then((user)=>{
+      usersCollection.doc(userObject.email).get().then((user)=>{
+        console.log("🚀 ~ file: ProfileScreen.js ~ line 19 ~ firestore ~ user", user);
         const userInfo = user.data();
         userInfo && setProfileInfo(userInfo);
       })
     }
   }, []);
 
-  const onJoinPress = () => {
-    console.log('tadaaa....');
+  const onJoinPress = async () => {
+    const matchedProfiles = [];
+    const usersWithSameInterests = await usersCollection.where('email', '!=', profileInfo.email).where('interests', 'array-contains-any', profileInfo.interests)
+    .get();
+    const myDOBPreferenceMin = moment(profileInfo.dob.toDate()).subtract({ years: 5 }).format("MM-DD-YYYY");
+    const myDOBPreferenceMax = moment(profileInfo.dob.toDate()).add({ years: 5 }).format("MM-DD-YYYY");
+    usersWithSameInterests.docs.forEach(user => {
+      const profileObject = user.data();
+      const profileDOB = moment(profileObject.dob.toDate()).format("MM-DD-YYYY");
+      const distance = geolib.getDistance(profileObject.geoCoordinates, profileObject.geoCoordinates);
+      if(10000 > distance && moment(profileDOB).isBetween(myDOBPreferenceMin, myDOBPreferenceMax)) {
+        matchedProfiles.push(profileObject);
+      }    
+    });
+
+
   }
 
   if(!profileInfo) {
