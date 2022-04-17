@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Dimensions, StyleSheet, Text, Linking, Platform } from 'react-native';
-import { Avatar, Headline, Subheading, Chip, Paragraph, Button } from 'react-native-paper';
+import { Avatar, Headline, Subheading, Chip, Paragraph, Button, Banner } from 'react-native-paper';
 import layout from '../theme/layout';
 import { AuthContext } from '../context-store/AuthContextProvider';
 import firestore from '@react-native-firebase/firestore';
@@ -8,18 +8,20 @@ import images from '../theme/images'
 import { ScrollView } from 'react-native-gesture-handler';
 const geolib = require('geolib');
 import moment from 'moment';
+import colors from '../theme/colors';
 
 function ProfileScreen({ route, navigation }) {
 
   const { user } = route.params || {};
   const { user: userObject } = React.useContext(AuthContext);
   const [profileInfo, setProfileInfo] = useState(null);
+  const [groupError, setGroupError] = useState(false);
   const usersCollection = firestore().collection('Users');
+  const chatRoomsCollection = firestore().collection('ChatRooms');
 
   useEffect(()=>{
     if(!user && userObject.email) {
       usersCollection.doc(userObject.email).get().then((user)=>{
-        console.log("🚀 ~ file: ProfileScreen.js ~ line 19 ~ firestore ~ user", user);
         const userInfo = user.data();
         userInfo && setProfileInfo(userInfo);
       })
@@ -40,8 +42,21 @@ function ProfileScreen({ route, navigation }) {
         matchedProfiles.push(profileObject);
       }    
     });
+    matchedProfiles.push(profileInfo);
+    //find the room already exists
+    const matchedEmails = matchedProfiles.map((user)=>user.email);
+    const roomsExists = await chatRoomsCollection.where('emails', 'in', [matchedEmails]).get();
 
-
+    if(roomsExists.docs.length == 0) {
+      //create a room with matched profiles
+      chatRoomsCollection.add({
+        emails: matchedEmails,
+        users: matchedProfiles,
+        avatar: null
+      });
+    } else {
+      setGroupError(true);
+    }
   }
 
   if(!profileInfo) {
@@ -50,6 +65,19 @@ function ProfileScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
+        <Banner
+          visible={groupError}
+          style={{ width: '100%', backgroundColor: colors.themeLightColors.primaryLight}}
+          actions={[
+            {
+              label: 'Okay',
+              onPress: () => setGroupError(false),
+              style: { backgroundColor: 'white' }
+            }
+          ]}
+        >
+          No matching groups found, try again later or try different interests
+        </Banner>
         <ScrollView style={{ flex: 1, width: '100%'}}>
           <View style={{ padding: layout.padding.xxxLarge }}/>
           <View style={{ justifyContent: 'center', alignItems: 'center' }}>

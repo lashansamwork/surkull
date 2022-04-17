@@ -14,7 +14,7 @@ export default function CustomNavigationBar({ navigation, back, route }) {
     switch (route.name) {
       case 'ProfileScreen':
         return 'My Account';
-      case 'ChatScreen':
+      case 'ChatsScreen':
         return 'My Chats';
       default:
         break;
