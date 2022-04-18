@@ -63,6 +63,7 @@ function InterestInfoScreen({ route, navigation }) {
       email: userBio.email.toLowerCase(),
       interests: interests.filter((interest)=>interest.selected).map((interest)=>interest.title),
       aboutMe: userBio.aboutMe,
+      avatar: userBio.imageUrl.uri,
       geoCoordinates
     })
     .then(() => {

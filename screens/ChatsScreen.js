@@ -5,8 +5,9 @@ import { AuthContext } from '../context-store/AuthContextProvider';
 import { Avatar, Caption, Divider, List } from 'react-native-paper';
 import layout from '../theme/layout';
 import FullScreenLoading from '../component/FullScreenLoading';
+import _ from 'lodash';
 
-function ChatScreen() {
+function ChatScreen({ navigation }) {
   const chatRoomCollection = firestore().collection('ChatRooms');
   const { user: userObject } = React.useContext(AuthContext);
   const [chatRooms, setChatRooms] = useState([]);
@@ -17,9 +18,19 @@ function ChatScreen() {
   useEffect(() => {
     chatRoomCollection.where('emails', 'array-contains', userObject.email).get().then((chatRooms)=>{
       const chatsArray = chatRooms.docs.map((chatRoomInfo)=>{
+        console.log("🚀 ~ file: ChatsScreen.js ~ line 20 ~ chatsArray ~ chatRoomInfo", chatRoomInfo);
+
+        const roomPeople = chatRoomInfo.data().users.filter((user)=>user.email!==userObject.email);
+        let title = `${_.initial(roomPeople).map((user)=>user.name).join(', ')}`;
+        if(roomPeople.length > 1) {
+          title+= `and ${ roomPeople[roomPeople.length-1].name}`
+        } else {
+          title+= roomPeople[roomPeople.length-1].name;
+        }
         return {
           ...chatRoomInfo.data(),
-          path: chatRoomInfo.ref.path
+          path: chatRoomInfo.ref.path,
+          title
         };
       });
       setChatRooms(chatsArray);
@@ -29,7 +40,7 @@ function ChatScreen() {
   }, [refresh]);
 
   const onGroupPressed = (item) => {
-    console.log("🚀 ~ file: ChatsScreen.js ~ line 32 ~ onGroupPressed ~ item", item);
+    navigation.navigate('MessageScreen', { roomInfo: item });
   }
 
   if(loading) {
@@ -44,12 +55,12 @@ function ChatScreen() {
           onRefresh={()=> setRefresh(true)}
           style={{ width: '100%'}}
           contentContainerStyle={{ padding: layout.padding.xxxLarge }}
-          ItemSeparatorComponent={<Divider/>}
+          ItemSeparatorComponent={Divider}
           ListEmptyComponent={<Caption>No chats available</Caption>}
           data={chatRooms}
           renderItem={({ item })=><List.Item
             onPress={()=>onGroupPressed(item)}
-            title={'Chat with ' + item.users.map(user=>user.name).join(' | ')}
+            title={item.title}
             left={props => <Avatar.Image size={50} source={{ uri: 'https://picsum.photos/200'}}/>}
           />}
           keyExtractor={(item, index) => index}

@@ -1,12 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Dimensions, StyleSheet, Text, Linking, Platform } from 'react-native';
-import { HelperText, Avatar, TextInput, Caption, ToggleButton, Button } from 'react-native-paper';
+import { HelperText, Avatar, TextInput, Caption, ToggleButton, Button, IconButton } from 'react-native-paper';
 import DatePicker from 'react-native-date-picker'
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import layout from '../theme/layout';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import colors from '../theme/colors';
 import Geolocation from '@react-native-community/geolocation';
+import { launchImageLibrary } from 'react-native-image-picker';
+import storage from '@react-native-firebase/storage';
 
 function BioInfoScreen({ navigation }) {
   const insets = useSafeAreaInsets();
@@ -20,7 +22,7 @@ function BioInfoScreen({ navigation }) {
     dob: false,
     password: false,
     confirmPassword: false,
-    aboutMe: false
+    aboutMe: false,
   }
   dobStart.setFullYear(dobStart.getFullYear() - 18);
 
@@ -32,7 +34,7 @@ function BioInfoScreen({ navigation }) {
     dob: dobStart,
     gender: genderTypes[0],
     password: null,
-    aboutMe: null
+    aboutMe: null,
   });
 
   const [userBioErrors, setUserBioErrors] = useState(noErrorState);
@@ -40,7 +42,7 @@ function BioInfoScreen({ navigation }) {
   const [open, setOpen] = useState(false);
 
   const onNextPressed =  () => {
-    Geolocation.requestAuthorization();
+    Platform.OS == 'ios' && Geolocation.requestAuthorization();
     setUserBioErrors(noErrorState);
     const errorState = {};
     let noErrors = true;
@@ -63,6 +65,18 @@ function BioInfoScreen({ navigation }) {
     }
   };
 
+  const onUploadPhoto = async () => {
+    const result = await launchImageLibrary({ mediaType: 'photo'});
+    console.log("🚀 ~ file: BioInfoScreen.js ~ line 69 ~ onUploadPhoto ~ result", result);
+   
+    const { uri, fileName } = result.assets[0];
+    const reference = storage().ref(fileName);
+    const uploadUri = Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
+    const res = await reference.putFile(uploadUri);
+    const url = await storage().ref(res.metadata.fullPath).getDownloadURL();
+    setUserBio({ ...userBio, imageUrl: { uri: url} })
+  }
+
   return (
     <View style={styles.container}>
       <DatePicker
@@ -80,6 +94,16 @@ function BioInfoScreen({ navigation }) {
       <KeyboardAwareScrollView contentContainerStyle={{ paddingTop: layout.padding.xxxLarge, paddingBottom: insets.bottom + 20 }}>
         <View style={{ justifyContent: 'center', alignItems: 'center' }}>
           <Avatar.Image size={125} source={userBio.imageUrl} />
+          <IconButton
+            icon="camera"
+            style={{ position: 'absolute', bottom: 0, right: '30%' }}
+            color={colors.themeLightColors.primary}
+            size={30}
+            onPress={() => onUploadPhoto()}
+          />
+          <HelperText type="error" visible={userBioErrors.imageUrl} style={{ marginHorizontal: layout.padding.medium }}>
+            Avatar cannot be empty!
+          </HelperText>
         </View>
         <View style={{ width: '100%', paddingTop: layout.padding.xxxLarge }}>
           <TextInput

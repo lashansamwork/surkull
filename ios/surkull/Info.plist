@@ -39,6 +39,12 @@
 	<string>Location is used to match with people around you</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Location is used to match with people around you</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Upload photo</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Camera for profile photo</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Camera for profile photo</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Entypo.ttf</string>

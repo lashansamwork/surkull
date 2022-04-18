@@ -9,15 +9,18 @@ import { ScrollView } from 'react-native-gesture-handler';
 const geolib = require('geolib');
 import moment from 'moment';
 import colors from '../theme/colors';
+import FullScreenLoading from '../component/FullScreenLoading';
 
 function ProfileScreen({ route, navigation }) {
 
   const { user } = route.params || {};
   const { user: userObject } = React.useContext(AuthContext);
-  const [profileInfo, setProfileInfo] = useState(null);
+  const [profileInfo, setProfileInfo] = useState(user);
   const [groupError, setGroupError] = useState(false);
   const usersCollection = firestore().collection('Users');
   const chatRoomsCollection = firestore().collection('ChatRooms');
+  const adminPreference = firestore().collection('AdminPreference');
+  const [preferences, setPreferences] = useState({ ageDifference: 5, locationDistance: 10000 });
 
   useEffect(()=>{
     if(!user && userObject.email) {
@@ -26,25 +29,33 @@ function ProfileScreen({ route, navigation }) {
         userInfo && setProfileInfo(userInfo);
       })
     }
+
+    adminPreference.get().then((res)=>{
+      const preferences = res.docs[0].data();
+      setPreferences(preferences);
+    });
+
+
   }, []);
 
   const onJoinPress = async () => {
+    const { ageDifference, locationDistance } = preferences;
     const matchedProfiles = [];
     const usersWithSameInterests = await usersCollection.where('email', '!=', profileInfo.email).where('interests', 'array-contains-any', profileInfo.interests)
     .get();
-    const myDOBPreferenceMin = moment(profileInfo.dob.toDate()).subtract({ years: 5 }).format("MM-DD-YYYY");
-    const myDOBPreferenceMax = moment(profileInfo.dob.toDate()).add({ years: 5 }).format("MM-DD-YYYY");
+    const myDOBPreferenceMin = moment(profileInfo.dob.toDate()).subtract({ years: ageDifference }).format("MM-DD-YYYY");
+    const myDOBPreferenceMax = moment(profileInfo.dob.toDate()).add({ years: ageDifference }).format("MM-DD-YYYY");
     usersWithSameInterests.docs.forEach(user => {
       const profileObject = user.data();
       const profileDOB = moment(profileObject.dob.toDate()).format("MM-DD-YYYY");
       const distance = geolib.getDistance(profileObject.geoCoordinates, profileObject.geoCoordinates);
-      if(10000 > distance && moment(profileDOB).isBetween(myDOBPreferenceMin, myDOBPreferenceMax)) {
+      if(locationDistance > distance && moment(profileDOB).isBetween(myDOBPreferenceMin, myDOBPreferenceMax)) {
         matchedProfiles.push(profileObject);
       }    
     });
     matchedProfiles.push(profileInfo);
     //find the room already exists
-    const matchedEmails = matchedProfiles.map((user)=>user.email);
+    const matchedEmails = matchedProfiles.map((user)=>user.email).sort();
     const roomsExists = await chatRoomsCollection.where('emails', 'in', [matchedEmails]).get();
 
     if(roomsExists.docs.length == 0) {
@@ -60,7 +71,7 @@ function ProfileScreen({ route, navigation }) {
   }
 
   if(!profileInfo) {
-    return <Text>Loading...</Text>
+    return <FullScreenLoading/>
   }
 
   return (
@@ -81,7 +92,7 @@ function ProfileScreen({ route, navigation }) {
         <ScrollView style={{ flex: 1, width: '100%'}}>
           <View style={{ padding: layout.padding.xxxLarge }}/>
           <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-            <Avatar.Image size={125} source={images.avatar} />
+            <Avatar.Image size={125} source={{ uri: profileInfo.avatar}} />
           </View>
           <View style={{ justifyContent: 'center', alignItems: 'center'}}>
             <Headline>{profileInfo.name}</Headline>
@@ -95,9 +106,9 @@ function ProfileScreen({ route, navigation }) {
             <Subheading>About Me</Subheading>
             <Paragraph numberOfLines={10} >{profileInfo.aboutMe}</Paragraph>
           </View>
-          <Button mode='contained' style={{ margin: layout.padding.xxxLarge }} onPress={onJoinPress}>
+          {!user && <Button mode='contained' style={{ margin: layout.padding.xxxLarge }} onPress={onJoinPress}>
             <Subheading>Join a new Surkull!</Subheading>
-          </Button>
+          </Button>}
           <View style={{ padding: layout.padding.xxxLarge }}></View>
         </ScrollView>
     </View>
