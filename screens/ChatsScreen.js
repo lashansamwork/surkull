@@ -18,9 +18,10 @@ function ChatScreen({ navigation }) {
   useEffect(() => {
     chatRoomCollection.where('emails', 'array-contains', userObject.email).get().then((chatRooms)=>{
       const chatsArray = chatRooms.docs.map((chatRoomInfo)=>{
-        console.log("🚀 ~ file: ChatsScreen.js ~ line 20 ~ chatsArray ~ chatRoomInfo", chatRoomInfo);
-
         const roomPeople = chatRoomInfo.data().users.filter((user)=>user.email!==userObject.email);
+        if(roomPeople.length == 0) {
+          return null;
+        }
         let title = `${_.initial(roomPeople).map((user)=>user.name).join(', ')}`;
         if(roomPeople.length > 1) {
           title+= `and ${ roomPeople[roomPeople.length-1].name}`
@@ -33,7 +34,7 @@ function ChatScreen({ navigation }) {
           title
         };
       });
-      setChatRooms(chatsArray);
+      setChatRooms(chatsArray.filter(Boolean));
       setLoading(false);
       setRefresh(false);
     });
